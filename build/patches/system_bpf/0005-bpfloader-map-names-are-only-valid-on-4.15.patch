@@ -1,0 +1,57 @@
+From fef86c1e568e487f7fdd371fee10e01b29cf6ca0 Mon Sep 17 00:00:00 2001
+From: backslashxx <118538522+backslashxx@users.noreply.github.com>
+Date: Tue, 24 Feb 2026 11:27:37 +0800
+Subject: [PATCH 5/9] bpfloader: map names are only valid on 4.15+
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+$ git checkout v4.14
+HEAD is now at bebc6082da0a Linux 4.14
+
+$ git grep map_name | egrep -v '^(arch|drivers|fs|include|samples|tools)/'
+
+(nothing)
+
+$ git checkout v4.15
+HEAD is now at d8a5b80568a9 Linux 4.15
+
+$ git co remotes/linux-$ git grep map_name | egrep -v '^(arch|drivers|fs|include|samples|tools)/'
+kernel/bpf/syscall.c:381:#define BPF_MAP_CREATE_LAST_FIELD map_name
+kernel/bpf/syscall.c:408:	err = bpf_obj_name_cpy(map->name, attr->map_name);
+
+  commit ad5b177bd73f5107d97c36f56395c4281fb6f089
+  Author: Martin KaFai Lau <kafai@fb.com>
+  Date:   Wed Sep 27 14:37:53 2017 -0700
+
+    bpf: Add map_name to bpf_map_info
+
+  $ git describe ad5b177bd73f5
+  v4.14-rc1-662-gad5b177bd73f
+
+Bug: 335390828
+Test: TreeHugger
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+Change-Id: I74f8ac8bbf78184a06b3ce005d0bb520b1d1feeb
+---
+ loader/Loader.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/loader/Loader.cpp b/loader/Loader.cpp
+index e7b87a4..f9451f9 100644
+--- a/loader/Loader.cpp
++++ b/loader/Loader.cpp
+@@ -401,7 +401,9 @@ static int createMaps(const char* elfPath, ifstream& elfFile, vector<unique_fd>&
+               .max_entries = max_entries,
+               .map_flags = md[i].map_flags,
+             };
+-            strlcpy(req.map_name, mapNames[i].c_str(), sizeof(req.map_name));
++
++            if (isAtLeastKernelVersion(4, 15, 0))
++                strlcpy(req.map_name, mapNames[i].c_str(), sizeof(req.map_name));
+             fd.reset(bpf(BPF_MAP_CREATE, req));
+             saved_errno = errno;
+             ALOGV("bpf_create_map name %s, ret: %d", mapNames[i].c_str(), fd.get());
+-- 
+2.53.0.windows.1
+

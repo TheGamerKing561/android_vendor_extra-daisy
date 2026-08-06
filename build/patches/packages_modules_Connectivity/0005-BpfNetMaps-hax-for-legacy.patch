@@ -1,0 +1,27 @@
+From d3cefa13c3841608f58c4af05a0e05b2cda73412 Mon Sep 17 00:00:00 2001
+From: Yumi Yukimura <me.cafebabe@gmail.com>
+Date: Wed, 24 Sep 2025 22:07:03 +0800
+Subject: [PATCH 05/12] BpfNetMaps: hax for legacy
+
+Change-Id: I19ca4a096b21d63d99cfa684bc1bf5dafcda830c
+---
+ service/src/com/android/server/BpfNetMaps.java | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/service/src/com/android/server/BpfNetMaps.java b/service/src/com/android/server/BpfNetMaps.java
+index a968193..4795d5d 100644
+--- a/service/src/com/android/server/BpfNetMaps.java
++++ b/service/src/com/android/server/BpfNetMaps.java
+@@ -474,8 +474,7 @@ public class BpfNetMaps {
+      NetworkStackUtils.isAtLeast25Q2 when it is moved to a static lib.
+      */
+     public static boolean isAtLeast25Q2() {
+-        return SdkLevel.isAtLeastB()  || (SdkLevel.isAtLeastV()
+-                && "Baklava".equals(Build.VERSION.CODENAME));
++        return false;
+     }
+ 
+     private void removeRule(final int uid, final long match, final String caller) {
+-- 
+2.53.0.windows.1
+

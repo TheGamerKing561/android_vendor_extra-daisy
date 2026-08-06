@@ -1,0 +1,45 @@
+From de0c687d828db413d918d8a2e787f392cf015bf1 Mon Sep 17 00:00:00 2001
+From: backslashxx <118538522+backslashxx@users.noreply.github.com>
+Date: Tue, 24 Feb 2026 11:30:07 +0800
+Subject: [PATCH 7/9] Revert "vendorBpfLoader: remove printing of map/prog ids"
+
+This reverts commit 77f8e9e3733bbd5cb85984b2dbe34c4996148517.
+---
+ loader/Loader.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/loader/Loader.cpp b/loader/Loader.cpp
+index ff442fc..7606efd 100644
+--- a/loader/Loader.cpp
++++ b/loader/Loader.cpp
+@@ -457,6 +457,13 @@ static int createMaps(const char* elfPath, ifstream& elfFile, vector<unique_fd>&
+             }
+         }
+ 
++        int mapId = bpfGetFdMapId(fd);
++        if (mapId == -1) {
++            ALOGE("bpfGetFdMapId failed, ret: %d [%d]", mapId, errno);
++        } else {
++            ALOGD("map %s id %d", mapPinLoc.c_str(), mapId);
++        }
++
+         mapFds.push_back(std::move(fd));
+     }
+ 
+@@ -615,6 +622,13 @@ static int loadCodeSections(const char* elfPath, vector<codeSection>& cs, const
+                 return -err;
+             }
+         }
++
++        int progId = bpfGetFdProgId(fd);
++        if (progId == -1) {
++            ALOGE("bpfGetFdProgId failed, ret: %d [%d]", progId, errno);
++        } else {
++            ALOGD("prog %s id %d", progPinLoc.c_str(), progId);
++        }
+     }
+ 
+     return 0;
+-- 
+2.53.0.windows.1
+

@@ -1,0 +1,101 @@
+From f5495a555b599b4b6f6cf6fc447a2fd7f3a69aa9 Mon Sep 17 00:00:00 2001
+From: Yumi Yukimura <me.cafebabe@gmail.com>
+Date: Mon, 12 Jan 2026 00:32:16 +0800
+Subject: [PATCH 04/12] Revert "NetBpfLoad: add self-check for
+ bpfGetNext{Prog,Map}Id()"
+
+This reverts commit 18523cb5f345b72292c2ca8ac26a9f4930efc19e.
+
+Change-Id: I1a5714f22964016be9b7a119a2105b74b1805c04
+---
+ bpf/loader/NetBpfLoad.cpp                     | 50 -------------------
+ .../include/BpfSyscallWrappers.h              | 12 -----
+ 2 files changed, 62 deletions(-)
+
+diff --git a/bpf/loader/NetBpfLoad.cpp b/bpf/loader/NetBpfLoad.cpp
+index 1363670..00c5f60 100644
+--- a/bpf/loader/NetBpfLoad.cpp
++++ b/bpf/loader/NetBpfLoad.cpp
+@@ -1817,56 +1817,6 @@ static int doLoad(char** argv, char * const envp[]) {
+         if (!createDir("/sys/fs/bpf/loader")) return 31;
+     }
+ 
+-    if (runningAsRoot) {  // implies U QPR3+ and kernel 4.14+
+-        // There should not be any programs or maps yet
+-        errno = 0;
+-        uint32_t progId = bpfGetNextProgId(0);  // expect 0 with errno == ENOENT
+-        if (progId || errno != ENOENT) {
+-            ALOGE("bpfGetNextProgId(zero) returned %u (errno %d)", progId, errno);
+-            return 32;
+-        }
+-        errno = 0;
+-        uint32_t mapId = bpfGetNextMapId(0);  // expect 0 with errno == ENOENT
+-        if (mapId || errno != ENOENT) {
+-            ALOGE("bpfGetNextMapId(zero) returned %u (errno %d)", mapId, errno);
+-            return 33;
+-        }
+-    } else if (isAtLeastKernelVersion(4, 14)) {  // implies S through U QPR2
+-        // bpfGetNext{Prog,Map}Id require 4.14+
+-        // furthermore since we're not running as root, we're not the initial
+-        // platform bpfloader, so there may already be some maps & programs.
+-        uint32_t mapId = 0;
+-        while (true) {
+-            errno = 0;
+-            uint32_t next = bpfGetNextMapId(mapId);
+-            if (!next && errno == ENOENT) break;
+-            if (next <= mapId) {
+-                ALOGE("bpfGetNextMapId(%u) returned %u errno %d", mapId, next, errno);
+-                return 34;
+-            }
+-            mapId = next;
+-        }
+-        // mapId is now the last map id, creating a new map should change that
+-        unique_fd map(createMap(BPF_MAP_TYPE_ARRAY, sizeof(int), sizeof(int), 1, 0));
+-        errno = 0;
+-        uint32_t next = bpfGetNextMapId(mapId);
+-        if (next <= mapId) {
+-            // We should fail here on Xiaomi S 4.14.180 due to kernel uapi bug,
+-            // which causes bpfGetNextMapId to behave as bpfGetNextProgId,
+-            // and thus it should return 0 with errno == ENOENT.
+-            ALOGE("bpfGetNextMapId(final %d) returned %d errno %d", mapId, next, errno);
+-            if (next || errno != ENOENT) return 35;
+-            if (isAtLeastT || isAtLeastKernelVersion(4, 20)) return 36;
+-            // implies Android S with 4.14 or 4.19 kernel
+-            ALOGW("Detected kernel with invalid BPF UAPI - disabling mainline use of eBPF.");
+-            // leave a flag that we're 'done'
+-            if (!createDir("/sys/fs/bpf/netd_shared/mainline_done")) return 37;
+-            return 0;
+-        }
+-    } else {  // implies S/T with 4.9 kernel
+-        // nothing we can do.
+-    }
+-
+     // Load all ELF objects, create programs and maps, and pin them
+     if (!loadAllObjects()) {
+         ALOGE("=== CRITICAL FAILURE LOADING BPF PROGRAMS ===");
+diff --git a/bpf/syscall_wrappers/include/BpfSyscallWrappers.h b/bpf/syscall_wrappers/include/BpfSyscallWrappers.h
+index 401c92b..0a3e7db 100644
+--- a/bpf/syscall_wrappers/include/BpfSyscallWrappers.h
++++ b/bpf/syscall_wrappers/include/BpfSyscallWrappers.h
+@@ -304,18 +304,6 @@ inline int runProgram(const borrowed_fd &prog_fd, const void *data,
+                });
+ }
+ 
+-// 4.14+: returns next id > prog_id, or 0 (and sets errno)
+-inline uint32_t bpfGetNextProgId(const uint32_t prog_id) {
+-    bpf_attr arg = { .start_id = prog_id };
+-    return bpf(BPF_PROG_GET_NEXT_ID, &arg) ? 0 : arg.next_id;
+-}
+-
+-// 4.14+: returns next id > map_id, or 0 (and sets errno)
+-inline uint32_t bpfGetNextMapId(const uint32_t map_id) {
+-    bpf_attr arg = { .start_id = map_id };
+-    return bpf(BPF_MAP_GET_NEXT_ID, &arg) ? 0 : arg.next_id;
+-}
+-
+ // BPF_OBJ_GET_INFO_BY_FD requires 4.14+ kernel
+ //
+ // Note: some fields are only defined in newer kernels (ie. the map_info struct grows
+-- 
+2.53.0.windows.1
+

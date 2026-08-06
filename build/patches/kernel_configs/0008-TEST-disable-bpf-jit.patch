@@ -1,0 +1,24 @@
+From 61832962566d860f035218cca0edba3fd67da5a7 Mon Sep 17 00:00:00 2001
+From: backslashxx <118538522+backslashxx@users.noreply.github.com>
+Date: Sun, 8 Feb 2026 18:55:08 +0800
+Subject: [PATCH 8/8] TEST: disable bpf jit
+
+---
+ s/android-4.9/android-base.config | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/s/android-4.9/android-base.config b/s/android-4.9/android-base.config
+index cd2e3e5..0e8d1dd 100644
+--- a/s/android-4.9/android-base.config
++++ b/s/android-4.9/android-base.config
+@@ -21,7 +21,6 @@ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLOCK=y
+ CONFIG_BPF_SYSCALL=y
+-CONFIG_BPF_JIT=y
+ CONFIG_CC_STACKPROTECTOR_STRONG=y
+ CONFIG_CGROUPS=y
+ CONFIG_CGROUP_BPF=y
+-- 
+2.53.0.windows.1
+
