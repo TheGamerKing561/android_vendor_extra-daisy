@@ -87,6 +87,9 @@ function apply_legacy_patches() {
 
     # Return to source root directory
     croot
+
+    # Apply Android.mk and Android.bp symlinks patch for msm8996
+    git apply "${patches_dir}"/0001-msm8996.patch
 }
 
 # Execute patching only if explicitly requested
