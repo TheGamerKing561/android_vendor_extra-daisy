@@ -1,7 +1,7 @@
 From db03aaa28727e8fef87211e0973feef590ccdb1a Mon Sep 17 00:00:00 2001
 From: 0xKANARIA <enashinonome264@gmail.com>
 Date: Mon, 15 Sep 2025 05:57:20 +0000
-Subject: [PATCH 7/8] s/android-4.9: enable bpf jit
+Subject: [PATCH 2/2] s/android-4.9: enable bpf jit
 
 ---
  s/android-4.9/android-base.config | 2 +-

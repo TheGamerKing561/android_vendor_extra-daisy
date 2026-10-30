@@ -1,7 +1,7 @@
 From e90868569f0c98c1d7dcf2df1e6cf138657484e9 Mon Sep 17 00:00:00 2001
 From: 0xKANARIA <enashinonome264@gmail.com>
 Date: Sun, 14 Sep 2025 08:59:32 +0000
-Subject: [PATCH 6/8] initial s/android-4.9
+Subject: [PATCH 1/2] initial s/android-4.9
 
 ---
  s/android-4.9/Android.bp                      |  31 +++
